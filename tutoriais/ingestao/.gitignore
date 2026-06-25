@@ -18,6 +18,9 @@ __pycache__/
 **/.dlt/
 *.duckdb
 
+# Scripts de exemplo que o aluno cria ao seguir os tutoriais (não versionar)
+**/pipeline_*.py
+
 # Saídas de ingestão (Parquet local antes do sync)
 **/output/
 
