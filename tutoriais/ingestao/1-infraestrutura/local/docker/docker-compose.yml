@@ -1,0 +1,46 @@
+# docker-compose.yml -- Ambiente local de ingestão (Tutorial 1 - Local)
+# Sobe dois serviços:
+#   - postgres   : banco de ORIGEM, já populado com os dados mock (schema.sql + seed.sql)
+#   - ministack  : emulador da AWS (apenas S3) -- o "data lake" de DESTINO em s3://datalake
+#
+# Como o init do Postgres roda os arquivos .sql de /docker-entrypoint-initdb.d em ordem
+# alfabética, "schema.sql" roda antes de "seed.sql" (c < e). Os .csv da pasta são ignorados
+# pelo init (só .sql/.sh são executados).
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: ingestao_postgres
+    environment:
+      POSTGRES_USER: ecommerce
+      POSTGRES_PASSWORD: ecommerce
+      POSTGRES_DB: ecommerce
+    ports:
+      - "5432:5432"
+    volumes:
+      # ../../../dados é a pasta tutoriais/ingestao/dados (mocks compartilhados)
+      - ../../../dados:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecommerce -d ecommerce"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  ministack:
+    image: ministackorg/ministack:latest
+    container_name: ingestao_ministack
+    environment:
+      GATEWAY_PORT: "4566"
+      MINISTACK_REGION: "us-east-1"
+      SERVICES: "s3"
+    ports:
+      - "4566:4566"
+    volumes:
+      # scripts de init criam o bucket s3://datalake assim que o S3 fica pronto
+      - ./ministack-init:/docker-entrypoint-initaws.d:ro
+    healthcheck:
+      # a imagem do MiniStack não traz curl; usamos o python que já roda o serviço
+      test: ["CMD-SHELL", "python -c \"import urllib.request as u; u.urlopen('http://localhost:4566/_ministack/health')\" || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
