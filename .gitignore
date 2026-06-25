@@ -225,3 +225,24 @@ __marimo__/
 
 # Large binaries
 *.tar.gz
+
+# Ambientes Python
+.venv/
+venv/
+**/.venv/
+__pycache__/
+
+# Projetos/execução do Meltano
+**/projeto_ingestao/
+.meltano/
+**/.meltano/
+*.env
+.env
+
+# Artefatos do dlt
+.dlt/
+**/.dlt/
+*.duckdb
+
+# Saídas de ingestão (Parquet local antes do sync)
+**/output/

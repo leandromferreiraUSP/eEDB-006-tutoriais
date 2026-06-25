@@ -1,0 +1,29 @@
+# Artefatos gerados ao executar os tutoriais (não versionar)
+
+# Ambientes Python
+.venv/
+venv/
+**/.venv/
+__pycache__/
+
+# Projetos/execução do Meltano
+**/projeto_ingestao/
+.meltano/
+**/.meltano/
+*.env
+.env
+
+# Artefatos do dlt
+.dlt/
+**/.dlt/
+*.duckdb
+
+# Saídas de ingestão (Parquet local antes do sync)
+**/output/
+
+# Terraform (estado e provider baixado)
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+.terraform.lock.hcl
