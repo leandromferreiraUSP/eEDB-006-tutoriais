@@ -1,0 +1,16 @@
+produto_id,nome,categoria,preco
+1,Notebook Pro 14,Informática,5499.90
+2,Mouse sem fio,Informática,129.90
+3,Teclado mecânico,Informática,349.90
+4,Monitor 27 4K,Informática,1899.00
+5,Cadeira ergonômica,Móveis,1290.00
+6,Mesa de escritório,Móveis,899.00
+7,Smartphone X,Celulares,3299.00
+8,Fone Bluetooth,Áudio,299.90
+9,Caixa de som,Áudio,459.00
+10,Câmera Web HD,Informática,219.90
+11,SSD 1TB,Informática,549.00
+12,Carregador USB-C,Acessórios,89.90
+13,Hub USB,Acessórios,159.00
+14,Webcam Ring Light,Acessórios,119.00
+15,Tablet 10,Celulares,1799.00

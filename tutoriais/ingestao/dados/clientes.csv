@@ -1,0 +1,21 @@
+cliente_id,nome,email,cidade,estado,data_cadastro
+1,Ana Souza,ana.souza@exemplo.com.br,Rio de Janeiro,RJ,2023-01-26
+2,Bruno Lima,bruno.lima@exemplo.com.br,Porto Alegre,RS,2023-09-08
+3,Carla Mendes,carla.mendes@exemplo.com.br,Curitiba,PR,2023-05-23
+4,Diego Alves,diego.alves@exemplo.com.br,Rio de Janeiro,RJ,2024-11-23
+5,Eduarda Rocha,eduarda.rocha@exemplo.com.br,Brasília,DF,2023-03-31
+6,Felipe Castro,felipe.castro@exemplo.com.br,Manaus,AM,2024-03-08
+7,Gabriela Nunes,gabriela.nunes@exemplo.com.br,São Paulo,SP,2023-01-31
+8,Henrique Dias,henrique.dias@exemplo.com.br,Rio de Janeiro,RJ,2023-08-12
+9,Isabela Ramos,isabela.ramos@exemplo.com.br,Curitiba,PR,2024-06-01
+10,João Pereira,joão.pereira@exemplo.com.br,Manaus,AM,2023-01-28
+11,Karina Teixeira,karina.teixeira@exemplo.com.br,Brasília,DF,2023-07-23
+12,Lucas Martins,lucas.martins@exemplo.com.br,Brasília,DF,2024-03-05
+13,Mariana Costa,mariana.costa@exemplo.com.br,Curitiba,PR,2024-04-04
+14,Nelson Barbosa,nelson.barbosa@exemplo.com.br,Manaus,AM,2023-10-12
+15,Olivia Freitas,olivia.freitas@exemplo.com.br,São Paulo,SP,2023-06-13
+16,Paulo Cardoso,paulo.cardoso@exemplo.com.br,Recife,PE,2023-12-15
+17,Queila Moraes,queila.moraes@exemplo.com.br,Porto Alegre,RS,2023-06-09
+18,Rafael Gomes,rafael.gomes@exemplo.com.br,Curitiba,PR,2023-12-11
+19,Sofia Carvalho,sofia.carvalho@exemplo.com.br,Rio de Janeiro,RJ,2023-04-05
+20,Thiago Azevedo,thiago.azevedo@exemplo.com.br,Recife,PE,2023-04-10
