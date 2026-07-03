@@ -1,0 +1,1 @@
+Kafka explicado do zero: arquitetura, eventos e escalabilidade:  https://www.youtube.com/watch?v=hqd8nIrz9M8
