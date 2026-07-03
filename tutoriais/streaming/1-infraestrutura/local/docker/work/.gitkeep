@@ -1,0 +1,2 @@
+# Você cria aqui os consumers (consumer_spark.py, SQL do Flink) seguindo o tutorial.
+# O container Spark/Flink enxerga esta pasta em /work.

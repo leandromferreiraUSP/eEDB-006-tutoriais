@@ -1,0 +1,136 @@
+# docker-compose.yml -- Ambiente LOCAL de streaming (Tutorial 1 - Local)
+# Sobe todos os serviços usados pelos Tutoriais 2 (Filas), 3 (Kafka+Spark) e 4 (Kafka+Flink):
+#
+#   kafka     : broker Apache Kafka em modo KRaft (sem Zookeeper). Tópico de eventos.
+#   rabbitmq  : broker de FILAS (AMQP) + UI de gerenciamento. Usado no Tutorial 2 (local).
+#   ministack : emulador da AWS (apenas S3) -- o "data lake" de DESTINO em s3://datalake.
+#   spark     : container com Spark 3.5 (Structured Streaming). Usado no Tutorial 3.
+#   flink-*   : cluster Flink 1.20 (jobmanager + taskmanager) + SQL Client. Usado no Tutorial 4.
+#
+# O producer Python roda na SUA máquina (host) e publica no Kafka via localhost:29092
+# (listener HOST). Já os consumers Spark/Flink rodam em containers e alcançam o broker via
+# kafka:9092 (listener INTERNAL). Essa é a razão dos DOIS listeners no Kafka.
+
+services:
+  # ------------------------------------------------------------------ Kafka (KRaft)
+  kafka:
+    image: apache/kafka:3.9.0
+    container_name: streaming_kafka
+    ports:
+      - "29092:29092"          # listener HOST (producer/consumer na sua máquina)
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: "broker,controller"
+      # 3 listeners: CONTROLLER (KRaft), INTERNAL (containers), HOST (sua máquina)
+      KAFKA_LISTENERS: "CONTROLLER://:9093,INTERNAL://:9092,HOST://:29092"
+      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:9092,HOST://localhost:29092"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,HOST:PLAINTEXT"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+      # Single-node: tudo com replicação 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+
+  # ------------------------------------------------------------------ RabbitMQ (filas)
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: streaming_rabbitmq
+    ports:
+      - "5672:5672"            # AMQP (producer/consumer)
+      - "15672:15672"          # UI de gerenciamento (http://localhost:15672, guest/guest)
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+
+  # ------------------------------------------------------------------ MiniStack (S3 local)
+  ministack:
+    image: ministackorg/ministack:latest
+    container_name: streaming_ministack
+    ports:
+      - "4566:4566"
+    environment:
+      GATEWAY_PORT: "4566"
+      MINISTACK_REGION: "us-east-1"
+      SERVICES: "s3"
+    volumes:
+      # cria o bucket s3://datalake assim que o S3 fica pronto (subpasta ready.d/)
+      - ./ministack-init:/docker-entrypoint-initaws.d:ro
+    healthcheck:
+      # a imagem do MiniStack não traz curl; usamos o python que já roda o serviço
+      test: ["CMD-SHELL", "python -c \"import urllib.request as u; u.urlopen('http://localhost:4566/_ministack/health')\" || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # ------------------------------------------------------------------ Spark 3.5 (Tutorial 3)
+  spark:
+    image: apache/spark:3.5.3
+    container_name: streaming_spark
+    # Mantém o container vivo; você roda o consumer com:
+    #   docker exec -it streaming_spark /opt/spark/bin/spark-submit ... /work/consumer_spark.py
+    command: ["tail", "-f", "/dev/null"]
+    depends_on:
+      kafka:
+        condition: service_healthy
+      ministack:
+        condition: service_healthy
+    volumes:
+      - ./work:/work           # você cria aqui o consumer_spark.py (o container enxerga em /work)
+      - ./ivy-cache:/tmp/.ivy2 # cache dos JARs de --packages (use --conf spark.jars.ivy=/tmp/.ivy2)
+
+  # ------------------------------------------------------------------ Flink 1.20 (Tutorial 4)
+  flink-jobmanager:
+    build: ./flink                # Dockerfile: Flink 1.20 + conectores Kafka/Parquet + plugin S3
+    image: streaming-flink:1.20
+    container_name: streaming_flink_jobmanager
+    ports:
+      - "8081:8081"             # Flink Web UI (http://localhost:8081)
+    command: jobmanager
+    depends_on:
+      kafka:
+        condition: service_healthy
+      ministack:
+        condition: service_healthy
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: flink-jobmanager
+        s3.endpoint: http://ministack:4566
+        s3.path.style.access: true
+        s3.access-key: test
+        s3.secret-key: test
+    volumes:
+      - ./work:/work
+
+  flink-taskmanager:
+    build: ./flink
+    image: streaming-flink:1.20
+    container_name: streaming_flink_taskmanager
+    command: taskmanager
+    depends_on:
+      - flink-jobmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: flink-jobmanager
+        taskmanager.numberOfTaskSlots: 4
+        s3.endpoint: http://ministack:4566
+        s3.path.style.access: true
+        s3.access-key: test
+        s3.secret-key: test
+    volumes:
+      - ./work:/work

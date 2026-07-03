@@ -1,0 +1,26 @@
+# Artefatos de runtime (não versionar)
+**/.venv/
+**/__pycache__/
+**/work/*.py
+**/work/*.sql
+**/work/checkpoint*/
+**/ivy-cache/
+**/.ipynb_checkpoints/
+
+# Scripts que o ALUNO cria seguindo o tutorial (mostrados no texto, nunca versionados)
+**/producer.py
+**/consumer.py
+
+# Saídas locais eventuais
+**/output/
+*.parquet
+
+# Terraform
+**/.terraform/
+**/terraform.tfstate*
+**/*.tfvars
+**/build/           # zip/handler da Lambda gerados localmente
+
+# Credenciais / segredos
+**/.env
+*.pem
